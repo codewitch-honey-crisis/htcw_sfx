@@ -1,0 +1,26 @@
+{
+    "name": "htcw_sfx",
+    "version": "0.7.0",
+    "description": "Provides audio and MIDI classes",
+    "keywords": ["audio","midi"],
+    "authors": {
+        "name":"honey the codewitch",
+        "homepage": "https://www.codeproject.com/Members/code-witch"
+    },
+    "license": "MIT",
+    "frameworks": "*",
+    "platforms": "*",
+    "build": {
+        "unflags": "-std=gnu++11",
+        "flags": "-std=gnu++14"
+    },
+    "dependencies": {
+        "codewitch-honey-crisis/htcw_bits": "^1.0.4",
+        "codewitch-honey-crisis/htcw_io": "^1.1.1"
+    },
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/codewitch-honey-crisis/htcw_sfx.git"
+    }
+}
