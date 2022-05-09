@@ -1,17 +1,18 @@
 #include <htcw_bits.hpp>
 #include <sfx_midi_file.hpp>
 namespace sfx {
+// implement std::move to limit dependencies on the STL, which may not be there
 template< class T > struct midi_file_remove_reference      { typedef T type; };
 template< class T > struct midi_file_remove_reference<T&>  { typedef T type; };
 template< class T > struct midi_file_remove_reference<T&&> { typedef T type; };
 template <typename T>
-typename midi_file_remove_reference<T>::type&& midi_file_move(T&& arg)
-{
+typename midi_file_remove_reference<T>::type&& midi_file_move(T&& arg) {
     return static_cast<typename midi_file_remove_reference<T>::type&&>(arg);
 }
-bool midi_file_read_chunk_part(stream* in,size_t* in_out_offset, size_t* out_size)
-{
+// reads a chunk out of a multipart chunked file (MIDI file, basically)
+bool midi_file_read_chunk_part(stream* in,size_t* in_out_offset, size_t* out_size) {
     uint32_t tmp;
+    // read the size
     if(4!=in->read((uint8_t*)&tmp,4)) {
         return false;
     }
@@ -22,6 +23,7 @@ bool midi_file_read_chunk_part(stream* in,size_t* in_out_offset, size_t* out_siz
     *out_size=(size_t)tmp;
     return true;
 }
+// implement copy constructor/assignment operator
 void midi_file::copy(const midi_file& rhs) {
     type = rhs.type;
     timebase = rhs.timebase;
@@ -42,8 +44,10 @@ midi_file& midi_file::operator=(const midi_file& rhs) {
     copy(rhs);
     return *this;
 }
+// create an empy instance
 midi_file::midi_file() : type(0),timebase(0),tracks_size(0),tracks(nullptr) {
 }
+// steal
 midi_file::midi_file(midi_file&& rhs) {
     type = rhs.type;
     timebase = rhs.timebase;
@@ -52,6 +56,7 @@ midi_file::midi_file(midi_file&& rhs) {
     rhs.tracks = nullptr;
     rhs.tracks_size = 0;
 }
+// steal
 midi_file& midi_file::operator=(midi_file&& rhs) {
     if(tracks!=nullptr) {
         free(tracks);
@@ -64,13 +69,22 @@ midi_file& midi_file::operator=(midi_file&& rhs) {
     rhs.tracks_size = 0;
     return *this;
 }
+// destroy
 midi_file::~midi_file() {
     if(tracks!=nullptr) {
         free(tracks);
     }
 }
-
+// read file info from a stream
 sfx_result midi_file::read(stream* in, midi_file* out_file) {
+    // MIDI files are a series of "chunks" that are a 4 byte ASCII string
+    // "magic" identifier, and a 4 byte integer size, followed by 
+    // that many bytes of data. After that is the next chunk
+    // or the end of the file.
+    // the two relevant chunks are MThd (always size of 6)
+    // that contains the MIDI file global info
+    // and then MTrk for each MIDI track in the file
+    // chunks with any other magic id are ignored.
     if(in==nullptr||out_file==nullptr) {
         return sfx_result::invalid_argument;
     }
@@ -164,7 +178,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
 }
 
 
-
+// construct an instance given a file and stream
 midi_file_source::midi_file_source(const midi_file& file, stream* input) : m_file(file), m_stream(input),m_elapsed(0),m_contexts(nullptr),m_next_context(0) {
     
 }
@@ -228,27 +242,33 @@ sfx_result midi_file_source::read_next_event() {
     if(m_next_context==tsz) {
         return sfx_result::end_of_stream;
     }
+    // find the next context we're 
+    // pulling the message from
     source_context* ctx = m_contexts+m_next_context;
     if(ctx->eos) {
         return sfx_result::end_of_stream;
     }
-    
+    // seek to the current input position
     if(ctx->input_position!=m_stream->seek(ctx->input_position)) {
         return sfx_result::io_error;
     }
+    // decode the next event
     size_t sz = midi_stream::decode_event(true,m_stream,&ctx->event);
     if(sz==0) {
         return sfx_result::invalid_format;
     }
+    // increment the position
     ctx->input_position+=sz;
+    // set the end of stream flag if we're there
     if(ctx->input_position-m_file.tracks[m_next_context].offset>=m_file.tracks[m_next_context].size) {
         ctx->eos = true;
     }
-       
+    // find the context with the nearest absolutely positioned
+    // event and store the index of it for later
     bool done = true;
     m_next_context = tsz;
     unsigned long long pos = (unsigned long long)-1;
-    for(int i = 0;i<tsz;++i) {   
+    for(int i = 0;i<(int)tsz;++i) {   
         ctx = m_contexts+i;
         if(!ctx->eos) {
             if(ctx->event.message.status!=0 && ctx->event.absolute<pos) {
@@ -264,31 +284,30 @@ sfx_result midi_file_source::reset() {
     if(m_stream==nullptr) {
         return sfx_result::invalid_state;
     }
+    // reset the count of elapsed ticks
     m_elapsed = 0;
+    // fill the contexts
     const size_t tsz = m_file.tracks_size;
     for(int i = 0;i<tsz;++i) {
         source_context* ctx = m_contexts+i;
         ctx->input_position = m_file.tracks[i].offset;
+        // set the end flag in the case of a zero length track
         ctx->eos = !m_file.tracks[i].size;
         ctx->event.absolute = 0;
         ctx->event.delta = 0;
-        // preserve critical msg info:
-        uint8_t status = ctx->event.message.status;
-        uint8_t type = ctx->event.message.meta.type;
         ctx->event.message = midi_file_move(midi_message());
-        ctx->event.message.status = status;
-        ctx->event.message.meta.type = type;
-        
+        // decode the first event
         if(!ctx->eos && ctx->input_position ==m_stream->seek(ctx->input_position)) {
             if(0!=midi_stream::decode_event(true,m_stream,&ctx->event)) {
                 ctx->input_position = m_stream->seek(0,seek_origin::current);
-            }
-            
+            }    
         }  
     }
+    // now go through the contexts and find the one with
+    // the nearest absolute position.
     m_next_context = m_file.tracks_size;
     unsigned long long pos = (unsigned long long)-1;
-    for(int i = 0;i<tsz;++i) {   
+    for(int i = 0;i<(int)tsz;++i) {   
         source_context* ctx = m_contexts+i;
         if(!ctx->eos) {
             if(ctx->event.absolute<pos) {
@@ -297,7 +316,8 @@ sfx_result midi_file_source::reset() {
             }
         }    
     }
-    return m_next_context==m_file.tracks_size?sfx_result::end_of_stream:sfx_result::success;
+    return m_next_context==m_file.tracks_size?
+            sfx_result::end_of_stream:sfx_result::success;
 }
 sfx_result midi_file_source::receive(midi_event* out_event) {
     if(m_stream==nullptr) {
@@ -306,18 +326,28 @@ sfx_result midi_file_source::receive(midi_event* out_event) {
     if(m_next_context==m_file.tracks_size) {
         return sfx_result::end_of_stream;
     }
+    
     source_context* ctx = m_contexts+m_next_context;
     if(ctx->eos) {
         return sfx_result::end_of_stream;
     }
-    out_event->delta = (int32_t)ctx->event.absolute-elapsed();
+    out_event->delta = (int32_t)ctx->event.absolute-m_elapsed;
+    // the midi_file_move will cause these values
+    // to potentially be zeroed so we preserve 
+    // them:
     uint8_t status = ctx->event.message.status;
     uint8_t type = ctx->event.message.meta.type;
     out_event->message = midi_file_move(ctx->event.message);
-    ctx->event.message.status = status; // preserve a running status byte
-    ctx->event.message.meta.type = type; // preserve the meta type
+    // set a running status byte
+    ctx->event.message.status = status; 
+    // set the meta type
+    ctx->event.message.meta.type = type; 
+    // don't need anything else
+    
+    // advance the elapsed ticks
     m_elapsed = ctx->event.absolute;
     
+    // refill our contexts
     sfx_result r =read_next_event();
     if(r==sfx_result::end_of_stream) {
         return sfx_result::success;
