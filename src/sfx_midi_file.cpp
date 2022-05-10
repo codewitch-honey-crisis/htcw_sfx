@@ -1,4 +1,4 @@
-#include <htcw_bits.hpp>
+#include <htcw_endian.hpp>
 #include <sfx_midi_file.hpp>
 namespace sfx {
 // implement std::move to limit dependencies on the STL, which may not be there
