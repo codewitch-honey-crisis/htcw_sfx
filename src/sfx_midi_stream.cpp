@@ -1,6 +1,6 @@
 #include <sfx_midi_stream.hpp>
 namespace sfx {
-const size_t midi_stream::decode_event(bool is_file, stream* in, midi_stream_event* in_out_event) {
+const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* in_out_event) {
     if (in == nullptr || in_out_event == nullptr) {
         return 0;
     }
@@ -165,6 +165,5 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_stream_eve
     default:
         return result;
     }
-
 }
 }

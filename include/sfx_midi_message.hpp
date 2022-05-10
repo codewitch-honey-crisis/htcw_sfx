@@ -203,6 +203,15 @@ namespace sfx {
         // the MIDI message
         midi_message message;
     };
+    // the MIDI event plus an absolute position within the stream
+    struct midi_event_ex final {
+        // the absolute position in MIDI ticks
+        unsigned long long absolute;
+        // the delta from the last event in MIDI ticks
+        int32_t delta;
+        // the MIDI message
+        midi_message message;
+    };
     
 }
 #endif // HTCW_SFX_MIDI_MESSAGE_HPP

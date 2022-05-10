@@ -42,7 +42,7 @@ namespace sfx {
     class midi_file_source final : public midi_source {
         
         struct source_context {
-            midi_stream_event event;
+            midi_event_ex event;
             unsigned long long input_position;
             bool eos;
         };

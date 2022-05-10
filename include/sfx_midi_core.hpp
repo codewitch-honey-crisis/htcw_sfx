@@ -28,8 +28,10 @@ namespace sfx {
         virtual int32_t microtempo() const=0;
         virtual void microtempo(int32_t value)=0;
         virtual unsigned long long elapsed() const=0;
+        virtual bool full() const=0;
         virtual size_t queued() const=0;
         virtual sfx_result send(const midi_event& event)=0;
+        virtual sfx_result send(const midi_event_ex& event)=0;
         virtual sfx_result start()=0;
         virtual sfx_result stop()=0;
         virtual sfx_result update()=0;
