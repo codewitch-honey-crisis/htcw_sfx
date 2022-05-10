@@ -8,7 +8,7 @@ namespace sfx {
     class midi_driver : public midi_destination {
         midi_output& m_output;
         midi_clock m_clock;
-        midi_buffer32 m_queue;
+        midi_buffer16 m_queue;
         float m_tempo_scale;
         float m_velocity_scale;
         static void tick_callback(uint32_t pending, unsigned long long elapsed, void* state);

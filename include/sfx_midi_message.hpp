@@ -1,6 +1,6 @@
 #ifndef HTCW_SFX_MIDI_MESSAGE_HPP
 #define HTCW_SFX_MIDI_MESSAGE_HPP
-#include <htcw_bits.hpp>
+#include <htcw_endian.hpp>
 #include "sfx_core.hpp"
 #include "sfx_midi_utility.hpp"
 namespace sfx {

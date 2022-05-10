@@ -1,4 +1,4 @@
-#include "sfx_midi_driver.hpp"
+#include <sfx_midi_driver.hpp>
 namespace sfx {
 // implement std::move to limit dependencies on the STL, which may not be there
 template< class T > struct midi_driver_remove_reference      { typedef T type; };

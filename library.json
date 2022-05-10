@@ -1,6 +1,6 @@
 {
     "name": "htcw_sfx",
-    "version": "0.7.2",
+    "version": "0.7.3",
     "description": "Provides audio and MIDI classes",
     "keywords": ["audio","midi"],
     "authors": {
@@ -10,13 +10,9 @@
     "license": "MIT",
     "frameworks": "*",
     "platforms": "*",
-    "build": {
-        "unflags": "-std=gnu++11",
-        "flags": "-std=gnu++14"
-    },
     "dependencies": {
-        "codewitch-honey-crisis/htcw_bits": "^1.0.4",
-        "codewitch-honey-crisis/htcw_io": "^1.1.1"
+        "codewitch-honey-crisis/htcw_bits": "^1.0.5",
+        "codewitch-honey-crisis/htcw_io": "^1.1.2"
     },
     "repository":
     {
