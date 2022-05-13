@@ -173,7 +173,6 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
     if(i<out_file->tracks_size) {
         return sfx_result::end_of_stream;
     }
-    
     return sfx_result::invalid_format;   
 }
 
@@ -252,16 +251,17 @@ sfx_result midi_file_source::read_next_event() {
     if(ctx->input_position!=m_stream->seek(ctx->input_position)) {
         return sfx_result::io_error;
     }
-    // decode the next event
-    size_t sz = midi_stream::decode_event(true,m_stream,&ctx->event);
-    if(sz==0) {
-        return sfx_result::invalid_format;
-    }
-    // increment the position
-    ctx->input_position+=sz;
     // set the end of stream flag if we're there
     if(ctx->input_position-m_file.tracks[m_next_context].offset>=m_file.tracks[m_next_context].size) {
         ctx->eos = true;
+    } else {
+        // decode the next event
+        size_t sz = midi_stream::decode_event(true,m_stream,&ctx->event);
+        if(sz==0) {
+            return sfx_result::invalid_format;
+        }
+        // increment the position
+        ctx->input_position+=sz;
     }
     // find the context with the nearest absolutely positioned
     // event and store the index of it for later
