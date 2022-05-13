@@ -73,10 +73,11 @@ uint32_t midi_clock::pending_ticks() {
     return elapsed_secs/midi_utility::sec_per_tick(m_microtempo,m_timebase);
 }
 void midi_clock::tick_callback(void(callback)(uint32_t,unsigned long long,void*),void* state) {
+    bool started = m_started;
     m_started = false;
     m_tick_callback_state = state;
     m_tick_callback=callback;
-    m_started = true;
+    m_started = started;
 }
 
 void midi_clock::start() {
