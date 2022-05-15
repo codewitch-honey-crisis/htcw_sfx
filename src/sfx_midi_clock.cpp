@@ -8,7 +8,6 @@ midi_clock::midi_clock() : m_tempo(120.0),
             m_tick_callback(nullptr),
             m_tick_callback_state(nullptr),
             m_last(tp_t::min()),
-            m_pending(0.0),
             m_elapsed(0),
             m_started(false) {
     
@@ -18,7 +17,6 @@ midi_clock::midi_clock(midi_clock&& rhs) : m_started(false) {
     m_microtempo=rhs.m_microtempo;
     m_timebase = rhs.m_timebase;
     m_last = rhs.m_last;
-    m_pending = rhs.m_pending;
     m_elapsed = rhs.m_elapsed;
     rhs.m_tick_callback_state = rhs.m_tick_callback_state;
     m_tick_callback = rhs.m_tick_callback;
@@ -32,7 +30,6 @@ midi_clock& midi_clock::operator=(midi_clock&& rhs) {
     m_microtempo=rhs.m_microtempo;
     m_timebase = rhs.m_timebase;
     m_last = rhs.m_last;
-    m_pending = rhs.m_pending;
     m_elapsed = rhs.m_elapsed;
     rhs.m_tick_callback_state = rhs.m_tick_callback_state;
     m_tick_callback = rhs.m_tick_callback;
@@ -50,11 +47,11 @@ void midi_clock::update() {
     auto per = clock_t::now()-m_last;
     double elapsed_secs = per.count()/clock_hz;
     if(elapsed_secs!=0.0) {
-        double elapsed = elapsed_secs/midi_utility::sec_per_tick(m_microtempo,m_timebase);
-        if(elapsed>=1.0) {
-            m_elapsed+=elapsed;
+        double elapsed_ticks = elapsed_secs/midi_utility::sec_per_tick(m_microtempo,m_timebase);
+        if(elapsed_ticks>=1.0) {
+            m_elapsed+=elapsed_ticks;
             if(m_tick_callback!=nullptr) {
-                m_tick_callback(elapsed_secs*elapsed,m_elapsed,m_tick_callback_state);
+                m_tick_callback(elapsed_secs*elapsed_ticks,m_elapsed,m_tick_callback_state);
             }
             m_last = clock_t::now();
         }
@@ -83,7 +80,6 @@ void midi_clock::tick_callback(void(callback)(uint32_t,unsigned long long,void*)
 void midi_clock::start() {
     m_started = false;
     m_elapsed = 0;
-    m_pending = 0;
     m_last = clock_t::now();
     m_started = true;
 }
