@@ -22,7 +22,7 @@ class midi_clock final {
     void* m_tick_callback_state;
     tp_t m_last;
     double m_pending_ticks;
-    unsigned long long m_elapsed_ticks;
+    unsigned long long m_elapsed;
     bool m_started;
     
 #ifdef ESP32
@@ -66,11 +66,11 @@ public:
         m_timebase = value;
     }
     // gets the elapsed ticks since start()
-    inline unsigned long long elapsed_ticks() const {
-        return m_elapsed_ticks*m_started;
+    inline unsigned long long elapsed() const {
+        return m_elapsed*m_started;
     }
-    inline void elapsed_ticks(unsigned long long value) {
-        m_elapsed_ticks=value;
+    inline void elapsed(unsigned long long value) {
+        m_elapsed=value;
     }
     inline bool started() const {
         return m_started;
@@ -80,7 +80,7 @@ public:
     // update the clock. call this in a loop unless source_pin() is set
     void update();
     // the optional callback function with which to receive tick notifications
-    void tick_callback(void(callback)(uint32_t pending_ticks,unsigned long long elapsed_ticks,void* state),void* state=nullptr);
+    void tick_callback(void(callback)(uint32_t pending_ticks,unsigned long long elapsed,void* state),void* state=nullptr);
 
     // starts or resets the clock
     void start();

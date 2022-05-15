@@ -64,7 +64,7 @@ void midi_driver::microtempo(int32_t value) {
     m_clock.microtempo(value*m_tempo_scale);
 }
 unsigned long long midi_driver::elapsed() const {
-    return m_clock.elapsed_ticks();
+    return m_clock.elapsed();
 }
 bool midi_driver::full() const {
     return m_queue.full();
@@ -77,7 +77,7 @@ sfx_result midi_driver::send(const midi_event& event) {
         return sfx_result::out_of_memory;
     }
     midi_event_ex mse;
-    mse.absolute = event.delta + m_clock.elapsed_ticks();
+    mse.absolute = event.delta + m_clock.elapsed();
     mse.delta = event.delta;
     mse.message = event.message;
     m_queue.put(mse);
