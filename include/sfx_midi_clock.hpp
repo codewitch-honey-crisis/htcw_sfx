@@ -69,6 +69,9 @@ public:
     inline unsigned long long elapsed_ticks() const {
         return m_elapsed_ticks*m_started;
     }
+    inline void elapsed_ticks(unsigned long long value) {
+        m_elapsed_ticks=value;
+    }
     inline bool started() const {
         return m_started;
     }
