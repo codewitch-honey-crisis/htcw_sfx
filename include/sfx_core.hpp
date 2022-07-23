@@ -32,18 +32,20 @@ namespace sfx {
         invalid_state,
         unknown_error
     };
+    enum struct audio_format {
+        pcm = 0
+    };
     struct audio_target {
-
+        virtual size_t bit_depth() const=0;
+        virtual size_t sample_rate() const=0;
+        virtual size_t channels() const=0;
+        virtual audio_format format() const=0;
     };
     struct audio_source : public audio_target {
-
+        virtual size_t read(void* samples,size_t sample_count)=0;
     };
     struct audio_destination : public audio_target {
-        virtual sfx_result bit_depth(size_t value)=0;
-        virtual sfx_result channels(size_t value)=0;
-        virtual sfx_result sample_rate(uint32_t value)=0;
-        virtual sfx_result write(int16_t* channels)=0;
-        virtual sfx_result update()=0;
+        virtual size_t write(const void* samples, size_t sample_count)=0;
     };
     
     
