@@ -4,7 +4,7 @@
 #include "sfx_sample_utility.hpp"
 #include <string.h>
 namespace sfx {
-template<size_t Voices,size_t SampleRate=44100,size_t Channels=2, size_t BitDepth = 16, size_t InitialBlockSamples=256>
+template<size_t Voices,size_t SampleRate=44100,size_t Channels=2, size_t BitDepth = 16, size_t InitialBlockSamples=32>
 class mixer_source final : public audio_source {
     static_assert(Voices>0,"Voices must be greater than zero");
     static_assert(SampleRate>0,"SampleRate must be greater than zero");
@@ -41,6 +41,7 @@ public:
         for(int i = 0;i<voices;++i) {
             m_voice_levels[i]=rhs.m_voice_levels[i];
             m_voices[i]=rhs.m_voices[i];
+            rhs.m_voices[i]=nullptr;
         }
         m_block = rhs.m_block;
         rhs.m_block = nullptr;
@@ -54,6 +55,7 @@ public:
         for(int i = 0;i<voices;++i) {
             m_voice_levels[i]=rhs.m_voice_levels[i];
             m_voices[i]=rhs.m_voices[i];
+            rhs.m_voices[i]=nullptr;
         }
         m_block = rhs.m_block;
         rhs.m_block = nullptr;
@@ -66,6 +68,7 @@ public:
     inline ~mixer_source() {
         deallocate();
     }
+    inline bool initialized() const { return m_block!=nullptr; }
     audio_source* voice(size_t voice_index) const {
         if(voice_index<0 || voice_index>=voices) {
             return nullptr;
@@ -95,7 +98,7 @@ public:
     virtual size_t channels() const { return channels_; }
     virtual audio_format format() const { return audio_format::pcm; }
     virtual size_t read(void* samples, size_t sample_count) {
-        size_t result=0;
+          size_t result=0;
         if(samples!=nullptr && m_block!=nullptr && sample_count!=0) {
             const size_t bytes_requested = (sample_count*bit_depth_+7)/8;
             if(bytes_requested>m_block_size) {
@@ -114,13 +117,25 @@ public:
                 result = sample_count;
             } else {
                 const size_t samples_to_read = sample_count;
-                const size_t samples_read = m_voices[0]->read(m_block,samples_to_read);
-                int16_t* p = (int16_t*)samples;
+                const size_t samples_read= m_voices[0]->read((uint8_t*)samples,samples_to_read);
+                int16_t* p;
+                if(m_voice_levels[0]!=1.0) {
+                    p = (int16_t*)samples;
+                    for(int i = 0;i<samples_read;++i) {
+                        int32_t smp = *p;
+                        if(smp>32767) {
+                            smp=32767;
+                        } else if(smp<-32768) {
+                            smp=-32768;
+                        }
+                        *(p++) = int16_t(smp);
+                    }
+                }
+                p = (int16_t*)samples;
                 for(int i = samples_read;i<samples_to_read;++i) {
                     p[i]=-32768;
                 }
-                result = samples_read;
-                
+                result = samples_to_read;
             }
             for(size_t j = 1;j<voices;++j) {
                 audio_source* voice = m_voices[j];
@@ -133,9 +148,8 @@ public:
                 const size_t samples_read = voice->read(m_block,samples_to_read);
                 int32_t smp;
                 for(size_t i = 0;i<samples_read;++i) {
-                    smp = *ps;
+                    smp = *ps*m_voice_levels[j];
                     smp+=*(pb++);
-                    smp*=m_voice_levels[j];
                     if(smp>32767) {
                         smp=32767;
                     } else if(smp<-32768) {

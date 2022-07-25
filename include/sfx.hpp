@@ -15,3 +15,4 @@
 #include "sfx_wav_file.hpp"
 #include "sfx_waveform.hpp"
 #include "sfx_silence.hpp"
+#include "sfx_performer.hpp"

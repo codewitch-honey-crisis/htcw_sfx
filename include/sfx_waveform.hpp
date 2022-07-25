@@ -35,6 +35,8 @@ namespace sfx {
         waveform_source() : m_frequency(440.0),m_amplitude(1.0),m_shape(waveform_shape::sine) {
 
         }
+        waveform_source(const waveform_source& rhs)=default;
+        waveform_source& operator=(const waveform_source& rhs)=default;
         inline float frequency() const { return m_frequency; }
         inline void frequency(float value_hz) { m_frequency = value_hz; }
         inline void amplitude(float amplitude_scale) { m_amplitude = amplitude_scale; }

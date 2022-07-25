@@ -18,6 +18,7 @@ namespace sfx {
         inline ~transport() { deallocate();}
         transport(transport&& rhs);
         transport& operator=(transport&& rhs);
+        inline bool initialized() const { return m_block!=nullptr; }
         inline audio_destination& destination() const { return *m_destination; }
         inline void destination(audio_destination& destination) { *m_destination=destination; }
         inline audio_source& source() const { return *m_source; }

@@ -21,6 +21,7 @@ namespace sfx {
         wav_file_end_callback m_ended_callback;
         void* m_ended_callback_state;
     public:
+        inline const wav_file& file() const { return m_file; }
         bool can_loop() const;
         inline bool loop() const { return m_loop; }
         sfx_result loop(bool value);

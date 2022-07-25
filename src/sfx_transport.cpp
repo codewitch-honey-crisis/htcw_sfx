@@ -58,11 +58,13 @@ namespace sfx {
                         for(int i = 0;i<samples_read;++i) {
                             *p=int16_t(*p*m_volume);
                             ++p;
+  
                         }
                     }
                     break;
                 }
             }
+
             if(samples_read!=m_destination->write(m_block,samples_read)) {
                 return sfx_result::device_error;
             }
