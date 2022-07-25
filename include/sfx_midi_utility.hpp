@@ -8,7 +8,7 @@ struct midi_utility {
     // decodes a variable length number
     static const uint8_t* decode_varlen(const uint8_t* in, int32_t* out_value);
     // decodes a variable length number
-    static size_t decode_varlen(stream* in, int32_t* out_value);
+    static size_t decode_varlen(stream& in, int32_t* out_value);
     // converts a MIDI microtempo to a tempo in beats per minute
     inline static double microtempo_to_tempo(int32_t microtempo) {
         return 60000000 / ((double)microtempo);

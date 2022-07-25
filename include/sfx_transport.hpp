@@ -18,10 +18,14 @@ namespace sfx {
         inline ~transport() { deallocate();}
         transport(transport&& rhs);
         transport& operator=(transport&& rhs);
+        inline audio_destination& destination() const { return *m_destination; }
+        inline void destination(audio_destination& destination) { *m_destination=destination; }
+        inline audio_source& source() const { return *m_source; }
+        inline void source(audio_source& source) { *m_source=source; }
         inline float volume() const { return m_volume; }
         inline void volume(float value) { m_volume = value; }
         sfx_result update();
-        static sfx_result create(audio_destination* destination,audio_source* source, transport* out_transport, size_t block_samples = 32,void*(allocator)(size_t)=::malloc, void(deallocator)(void*)=::free);
+        static sfx_result create(audio_destination& destination,audio_source& source, transport* out_transport, size_t block_samples = 32,void*(allocator)(size_t)=::malloc, void(deallocator)(void*)=::free);
     };
 
 }

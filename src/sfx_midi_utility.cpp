@@ -12,14 +12,14 @@ const uint8_t* midi_utility::decode_varlen(const uint8_t* in, int32_t* out_value
     *out_value = value;
     return in;
 }
-size_t midi_utility::decode_varlen(stream* in, int32_t* out_value) {
+size_t midi_utility::decode_varlen(stream& in, int32_t* out_value) {
     uint8_t c;
     uint32_t value;
     size_t result = 1;
-    if ((value = (uint8_t)in->getch()) & 0x80) {
+    if ((value = (uint8_t)in.getch()) & 0x80) {
         value &= 0x7f;
         do {
-            value = (value << 7) + ((c = (uint8_t)in->getch()) & 0x7f);
+            value = (value << 7) + ((c = (uint8_t)in.getch()) & 0x7f);
             ++result;
         } while (c & 0x80 && result < 4);
     }

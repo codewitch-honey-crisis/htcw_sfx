@@ -9,7 +9,9 @@
 #include "sfx_midi_clock.hpp"
 #include "sfx_midi_driver.hpp"
 #include "sfx_midi_file.hpp"
-
+// Audio
 #include "sfx_transport.hpp"
+#include "sfx_mixer.hpp"
 #include "sfx_wav_file.hpp"
 #include "sfx_waveform.hpp"
+#include "sfx_silence.hpp"

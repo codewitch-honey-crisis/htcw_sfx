@@ -1,6 +1,6 @@
 {
     "name": "htcw_sfx",
-    "version": "0.7.9",
+    "version": "0.8.0",
     "description": "Provides audio and MIDI classes",
     "keywords": ["audio","midi"],
     "authors": {

@@ -36,7 +36,7 @@ namespace sfx {
         // destroys an instance
         ~midi_file();
         // reads a file from a stream
-        static sfx_result read(stream* in, midi_file* out_file);
+        static sfx_result read(stream& in, midi_file* out_file);
     };
     // represents a MIDI source from a MIDI file
     class midi_file_source final : public midi_source {
@@ -57,8 +57,8 @@ namespace sfx {
         sfx_result read_next_event();
         midi_file_source(const midi_file_source& rhs)=delete;
         midi_file_source& operator=(const midi_file_source& rhs)=delete;
-        midi_file_source(const midi_file& file, stream* input); 
-        midi_file_source(const midi_file& file, uint8_t* input);;
+        midi_file_source(const midi_file& file, stream& input); 
+        midi_file_source(const midi_file& file, uint8_t& input);;
     public:
         // constructs a new instance
         midi_file_source();
@@ -69,7 +69,7 @@ namespace sfx {
         // steals an instance
         midi_file_source& operator=(midi_file_source&& rhs);
         // opens a stream for reading. the stream must be readable and seekable
-        static sfx_result open(stream* input,midi_file_source* out_source);
+        static sfx_result open(stream& input,midi_file_source* out_source);
         // gets the MIDI file data associated with this instance
         inline const midi_file& file() const { return m_file; }
         // gets the number of ticks that have elapsed since the last open or reset

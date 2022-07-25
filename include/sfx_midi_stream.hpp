@@ -10,7 +10,7 @@ public:
     // decode the next event. The contents of the 
     // in_out_event should be preserved between calls to this method.
     static const size_t decode_event(bool is_file, 
-                                    stream* in, 
+                                    stream& in, 
                                     midi_event_ex* in_out_event);
 };
 }  // namespace sfx

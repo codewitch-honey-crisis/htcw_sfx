@@ -1,7 +1,7 @@
 #include <sfx_midi_stream.hpp>
 namespace sfx {
-const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* in_out_event) {
-    if (in == nullptr || in_out_event == nullptr) {
+const size_t midi_stream::decode_event(bool is_file, stream& in, midi_event_ex* in_out_event) {
+    if (in_out_event == nullptr) {
         return 0;
     }
     int32_t delta;
@@ -9,7 +9,7 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* 
     
     in_out_event->absolute+=delta;
     in_out_event->delta=delta;
-    int i = in->getch();
+    int i = in.getch();
         if(i==-1) {
         return 0;
     }
@@ -41,13 +41,13 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* 
     case midi_message_type::pitch_wheel_change:
     case midi_message_type::song_position:
         if(has_status) {
-            if(2!=in->read((uint8_t*)&in_out_event->message.value16,2)) {
+            if(2!=in.read((uint8_t*)&in_out_event->message.value16,2)) {
                 return 0;
             }
             result+=2;
             return result;
         }
-        i=in->getch();
+        i=in.getch();
         if(i==-1) {
             return 0;
         }
@@ -59,7 +59,7 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* 
     case midi_message_type::channel_pressure:
     case midi_message_type::song_select:
         if(has_status) {
-            i=in->getch();
+            i=in.getch();
             if(i==-1) {
                 return 0;
             }
@@ -78,7 +78,7 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* 
             uint8_t b = 0;
             int i = 0;
             while(b!=0xF7) {
-                if(0==in->read(&b,1)) {
+                if(0==in.read(&b,1)) {
                     if(nullptr!=psx) {
                         free(psx);
                     }
@@ -127,7 +127,7 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* 
             return result;
         }
         // this is a meta event
-            i=in->getch();
+            i=in.getch();
             if(i==-1) {
                 return 0;
             }
@@ -144,7 +144,7 @@ const size_t midi_stream::decode_event(bool is_file, stream* in, midi_event_ex* 
                 if(nullptr==p) {
                     return 0;
                 }
-                if(vl!=in->read(p,vl)) {
+                if(vl!=in.read(p,vl)) {
                     free(p);
                     return 0;
                 }

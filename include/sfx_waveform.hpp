@@ -1,5 +1,5 @@
-#ifndef HTCW_SFX_WAVFORM
-#define HTCW_SFX_WAVFORM
+#ifndef HTCW_SFX_WAVFORM_HPP
+#define HTCW_SFX_WAVFORM_HPP
 #include "sfx_core.hpp"
 #include <math.h>
 namespace sfx {
@@ -36,8 +36,10 @@ namespace sfx {
 
         }
         inline float frequency() const { return m_frequency; }
-        void frequency(float value_hz) { m_frequency = value_hz; }
-        void amplitude(float amplitude_scale) { m_amplitude = amplitude_scale; }
+        inline void frequency(float value_hz) { m_frequency = value_hz; }
+        inline void amplitude(float amplitude_scale) { m_amplitude = amplitude_scale; }
+        inline waveform_shape shape() const { return m_shape; }
+        inline void shape(waveform_shape value_shape) { m_shape = value_shape;}
         virtual size_t bit_depth() const {
             return bit_depth_;
         }

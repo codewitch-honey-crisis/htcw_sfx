@@ -10,10 +10,10 @@ typename midi_file_remove_reference<T>::type&& midi_file_move(T&& arg) {
     return static_cast<typename midi_file_remove_reference<T>::type&&>(arg);
 }
 // reads a chunk out of a multipart chunked file (MIDI file, basically)
-bool midi_file_read_chunk_part(stream* in,size_t* in_out_offset, size_t* out_size) {
+bool midi_file_read_chunk_part(stream& in,size_t* in_out_offset, size_t* out_size) {
     uint32_t tmp;
     // read the size
-    if(4!=in->read((uint8_t*)&tmp,4)) {
+    if(4!=in.read((uint8_t*)&tmp,4)) {
         return false;
     }
     *in_out_offset+=4;
@@ -76,7 +76,7 @@ midi_file::~midi_file() {
     }
 }
 // read file info from a stream
-sfx_result midi_file::read(stream* in, midi_file* out_file) {
+sfx_result midi_file::read(stream& in, midi_file* out_file) {
     // MIDI files are a series of "chunks" that are a 4 byte ASCII string
     // "magic" identifier, and a 4 byte integer size, followed by 
     // that many bytes of data. After that is the next chunk
@@ -85,10 +85,10 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
     // that contains the MIDI file global info
     // and then MTrk for each MIDI track in the file
     // chunks with any other magic id are ignored.
-    if(in==nullptr||out_file==nullptr) {
+    if(out_file==nullptr) {
         return sfx_result::invalid_argument;
     }
-    if(!in->caps().read) {
+    if(!in.caps().read) {
         return sfx_result::io_error;
     }
     int16_t tmp;
@@ -99,7 +99,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
     m.magic[4]=0;
     size_t pos = 0;
     size_t sz;
-    if(4!=in->read((uint8_t*)m.magic,4)) {
+    if(4!=in.read((uint8_t*)m.magic,4)) {
         return sfx_result::invalid_format;
     }
     if(0!=strcmp(m.magic,"MThd")) {
@@ -110,7 +110,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
         return sfx_result::invalid_format;
     }
     
-    if(2!=in->read((uint8_t*)&tmp,2)) {
+    if(2!=in.read((uint8_t*)&tmp,2)) {
         return sfx_result::end_of_stream;
     }
     if(bits::endianness()==bits::endian_mode::little_endian) {
@@ -119,7 +119,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
     pos+=2;
     out_file->type = tmp;
 
-    if(2!=in->read((uint8_t*)&tmp,2)) {
+    if(2!=in.read((uint8_t*)&tmp,2)) {
         return sfx_result::end_of_stream;
     }
     if(bits::endianness()==bits::endian_mode::little_endian) {
@@ -127,7 +127,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
     }
     pos+=2;
     out_file->tracks_size = tmp;
-    if(2!=in->read((uint8_t*)&tmp,2)) {
+    if(2!=in.read((uint8_t*)&tmp,2)) {
         return sfx_result::end_of_stream;
     }
     if(bits::endianness()==bits::endian_mode::little_endian) {
@@ -141,7 +141,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
     }
     size_t i = 0;
     while(i<out_file->tracks_size) {
-        if(4!=in->read((uint8_t*)m.magic,4)) {
+        if(4!=in.read((uint8_t*)m.magic,4)) {
             if(out_file->tracks_size==i) {
                 return sfx_result::success;
             }
@@ -156,11 +156,11 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
             out_file->tracks[i].size=sz;
             ++i;
         } 
-        if(in->caps().seek) {
-            in->seek(sz,io::seek_origin::current);
+        if(in.caps().seek) {
+            in.seek(sz,io::seek_origin::current);
         } else {
             for(int j = 0;j<sz;++j) {
-                if(-1==in->getch()) {
+                if(-1==in.getch()) {
                     return sfx_result::end_of_stream;            
                 }
             }
@@ -178,7 +178,7 @@ sfx_result midi_file::read(stream* in, midi_file* out_file) {
 
 
 // construct an instance given a file and stream
-midi_file_source::midi_file_source(const midi_file& file, stream* input) : m_file(file), m_stream(input),m_elapsed(0),m_contexts(nullptr),m_next_context(0) {
+midi_file_source::midi_file_source(const midi_file& file, stream& input) : m_file(file), m_stream(&input),m_elapsed(0),m_contexts(nullptr),m_next_context(0) {
     
 }
 
@@ -213,18 +213,18 @@ midi_file_source& midi_file_source::operator=(midi_file_source&& rhs) {
     m_next_context = rhs.m_next_context;
     return *this;
 }
-sfx_result midi_file_source::open(stream* input,midi_file_source* out_source) {
-    if(input==nullptr || out_source==nullptr) {
+sfx_result midi_file_source::open(stream& input,midi_file_source* out_source) {
+    if(out_source==nullptr) {
         return sfx_result::invalid_argument;
     }
-    if(!input->caps().read || !input->caps().seek) {
+    if(!input.caps().read || !input.caps().seek) {
         return sfx_result::io_error;
     }
     sfx_result r= midi_file::read(input,&out_source->m_file);
     if(r!=sfx_result::success) {
         return r;
     }
-    out_source->m_stream = input;
+    out_source->m_stream = &input;
     out_source->m_contexts = (source_context*)calloc(out_source->m_file.tracks_size,sizeof(source_context));
     if(nullptr==out_source->m_contexts) {
         return sfx_result::out_of_memory;
@@ -256,7 +256,7 @@ sfx_result midi_file_source::read_next_event() {
         ctx->eos = true;
     } else {
         // decode the next event
-        size_t sz = midi_stream::decode_event(true,m_stream,&ctx->event);
+        size_t sz = midi_stream::decode_event(true,*m_stream,&ctx->event);
         if(sz==0) {
             return sfx_result::invalid_format;
         }
@@ -298,7 +298,7 @@ sfx_result midi_file_source::reset() {
         ctx->event.message = midi_file_move(midi_message());
         // decode the first event
         if(!ctx->eos && ctx->input_position ==m_stream->seek(ctx->input_position)) {
-            if(0!=midi_stream::decode_event(true,m_stream,&ctx->event)) {
+            if(0!=midi_stream::decode_event(true,*m_stream,&ctx->event)) {
                 ctx->input_position = m_stream->seek(0,seek_origin::current);
             }    
         }  

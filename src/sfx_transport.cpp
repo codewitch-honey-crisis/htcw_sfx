@@ -9,29 +9,27 @@ namespace sfx {
         }
         return sfx_result::success;
     }
-    sfx_result transport::create(audio_destination* destination,audio_source* source, transport* out_transport, size_t block_samples,void*(allocator)(size_t), void(deallocator)(void*)) {
-        if(destination==nullptr||
-            source==nullptr||
-            out_transport==nullptr || 
+    sfx_result transport::create(audio_destination& destination,audio_source& source, transport* out_transport, size_t block_samples,void*(allocator)(size_t), void(deallocator)(void*)) {
+        if(out_transport==nullptr || 
             0>=block_samples || 
             allocator==nullptr||
             deallocator==nullptr) {
             return sfx_result::invalid_argument;
         }
-        if(/*source->sample_rate()!=destination->sample_rate() ||
-            source->channels()!=destination->channels() ||
-            source->bit_depth()!=destination->bit_depth() ||*/
-            source->format()!=destination->format()) {
+        if(source.sample_rate()!=destination.sample_rate() ||
+            source.channels()!=destination.channels() ||
+            source.bit_depth()!=destination.bit_depth() ||
+            source.format()!=destination.format()) {
             return sfx_result::invalid_argument;
         }
         
-        size_t block_bytes = (block_samples*source->bit_depth()+7)/8;
+        size_t block_bytes = (block_samples*source.bit_depth()+7)/8;
         void* p = allocator(block_bytes);
         if(p==nullptr) {
             return sfx_result::out_of_memory;
         }
-        out_transport->m_destination = destination;
-        out_transport->m_source = source;
+        out_transport->m_destination = &destination;
+        out_transport->m_source = &source;
         out_transport->m_block = p;
         out_transport->m_block_samples = block_samples;
         out_transport->m_deallocator = deallocator;
