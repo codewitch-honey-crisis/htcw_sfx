@@ -102,11 +102,12 @@ public:
         if(samples!=nullptr && m_block!=nullptr && sample_count!=0) {
             const size_t bytes_requested = (sample_count*bit_depth_+7)/8;
             if(bytes_requested>m_block_size) {
-                m_block = m_reallocator(m_block,m_block_size);
+                m_block = m_reallocator(m_block,bytes_requested);
                 if(nullptr==m_block) {
                     // out of memory!
                     return 0;
                 }
+                m_block_size = bytes_requested;
             }
             
             if(m_voices[0]==nullptr||m_voice_levels[0]==0.0) {
@@ -122,7 +123,7 @@ public:
                 if(m_voice_levels[0]!=1.0) {
                     p = (int16_t*)samples;
                     for(int i = 0;i<samples_read;++i) {
-                        int32_t smp = *p;
+                        int32_t smp = *p*m_voice_levels[0];
                         if(smp>32767) {
                             smp=32767;
                         } else if(smp<-32768) {
