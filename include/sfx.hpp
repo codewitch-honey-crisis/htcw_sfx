@@ -16,3 +16,4 @@
 #include "sfx_waveform.hpp"
 #include "sfx_silence.hpp"
 #include "sfx_performer.hpp"
+#include "sfx_filter.hpp"

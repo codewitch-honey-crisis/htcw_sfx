@@ -30,7 +30,7 @@ namespace sfx {
         waveform_type m_wfrms[voices];
         void deallocate() {
            for(size_t i = 0;i<voices;++i) {
-                m_mixer.voice(i,nullptr);
+                m_mixer.track(i,nullptr);
             }
         }
         performer(const performer& rhs)=delete;
@@ -41,7 +41,7 @@ namespace sfx {
             unsigned min_age = 0;
             size_t index;
             for(size_t i = 0;i<voices;++i) {
-                if(m_mixer.voice(i)==nullptr) {
+                if(m_mixer.track(i)==nullptr) {
                     return i;
                 }
                 if(m_voice_age[i]>min_age) {
@@ -116,7 +116,7 @@ namespace sfx {
                 return false;
             }
             m_mixer.level(m_next_voice,volume);
-            m_mixer.voice(m_next_voice,&source);
+            m_mixer.track(m_next_voice,&source);
             m_voice_age[m_next_voice]=++m_voice_id;
             int result = m_next_voice;
             m_next_voice = next_free_voice();
@@ -130,12 +130,12 @@ namespace sfx {
             if(voice>=voices) {return false;}
             if(0>voice) {
                 for(size_t i = 0;i<voices;++i) {
-                    m_mixer.voice(i,nullptr);
+                    m_mixer.track(i,nullptr);
                 }
                 m_next_voice = 0;
                 return true;
             } else {
-                m_mixer.voice(voice,nullptr);
+                m_mixer.track(voice,nullptr);
                 m_next_voice=voice;
             }
             return true;
