@@ -140,19 +140,19 @@ namespace sfx {
             }
         }
         // get the MSB value for messages with a 2 byte payload
-        inline uint8_t msb() const {
+        inline uint8_t lsb() const {
             return (value16 >> 8)&0x7f;
         }
         // set the MSB value for messages with a 2 byte payload
-        inline void msb(uint8_t value) {
+        inline void lsb(uint8_t value) {
             value16 = (value16 & 0x7f) | uint16_t((value & 0x7f)<<8);
         }
         // get the LSB value for messages with a 2 byte payload
-        inline uint8_t lsb() const {
+        inline uint8_t msb() const {
             return value16 & 0x7f;
         }
         // set the LSB value for messages with a 2 byte payload
-        inline void lsb(uint8_t value) {
+        inline void msb(uint8_t value) {
             value16 = (value16 & uint16_t(0x7f<<8)) | (value & 0x7f);
         }
         // indicates the size of the message over the wire
