@@ -159,7 +159,7 @@ sfx_result midi_file::read(stream& in, midi_file* out_file) {
         if(in.caps().seek) {
             in.seek(sz,io::seek_origin::current);
         } else {
-            for(int j = 0;j<sz;++j) {
+            for(size_t j = 0;j<sz;++j) {
                 if(-1==in.getch()) {
                     return sfx_result::end_of_stream;            
                 }
@@ -288,7 +288,7 @@ sfx_result midi_file_source::reset() {
     m_elapsed = 0;
     // fill the contexts
     const size_t tsz = m_file.tracks_size;
-    for(int i = 0;i<tsz;++i) {
+    for(size_t i = 0;i<tsz;++i) {
         source_context* ctx = m_contexts+i;
         ctx->input_position = m_file.tracks[i].offset;
         // set the end flag in the case of a zero length track

@@ -27,13 +27,12 @@ void midi_driver::tick_callback(uint32_t pending, unsigned long long elapsed, vo
             } else {
                 midi_message msg = event->message;
                 if(rthis.m_velocity_scale!=1.0) {
-                    switch(msg.type()) {
-                        case midi_message_type::note_off:
-                        case midi_message_type::note_on:
-                            int i = msg.msb()*rthis.m_velocity_scale;
-                            if(i>127) i = 127;
-                            msg.msb(uint8_t(i));
-                            break;
+                    int i;
+                    midi_message_type t = msg.type();
+                    if(t==midi_message_type::note_off || t==midi_message_type::note_on) {
+                        i = msg.msb()*rthis.m_velocity_scale;
+                        if(i>127) i = 127;
+                        msg.msb(uint8_t(i));
                     }
                 }
                 rthis.m_output.send(msg);

@@ -140,7 +140,7 @@ const size_t midi_stream::decode_message(bool is_file,stream& in, midi_message* 
                 if(nullptr==p) {
                     return 0;
                 }
-                if(vl!=in.read(p,vl)) {
+                if(((size_t)vl)!=in.read(p,vl)) {
                     free(p);
                     return 0;
                 }
@@ -306,7 +306,7 @@ const size_t midi_stream::decode_event(bool is_file, stream& in, midi_event_ex* 
                 if(nullptr==p) {
                     return 0;
                 }
-                if(vl!=in.read(p,vl)) {
+                if(((size_t)vl)!=in.read(p,vl)) {
                     free(p);
                     return 0;
                 }

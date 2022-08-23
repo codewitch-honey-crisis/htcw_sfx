@@ -1,14 +1,5 @@
 #include <sfx_transport.hpp>
 namespace sfx {
-    static sfx_result sfx_transport_validate_target(audio_target* target) {
-        if(target==nullptr ||
-            (target->channels()!=1 && target->channels()!=2) ||
-            (target->bit_depth()!=8 && target->bit_depth()!=16)
-        ) {
-            return sfx_result::invalid_argument;
-        }
-        return sfx_result::success;
-    }
     sfx_result transport::create(audio_destination& destination,audio_source& source, transport* out_transport, size_t block_samples,void*(allocator)(size_t), void(deallocator)(void*)) {
         if(out_transport==nullptr || 
             0>=block_samples || 
@@ -47,7 +38,7 @@ namespace sfx {
                 switch(m_destination->bit_depth()) {
                     case 8: {
                         int8_t* p = (int8_t*)m_block;
-                        for(int i = 0;i<samples_read;++i) {
+                        for(size_t i = 0;i<samples_read;++i) {
                             *p=int8_t(*p*m_volume);
                             ++p;
                         }
@@ -55,7 +46,7 @@ namespace sfx {
                     break;
                     case 16: {
                         int16_t* p = (int16_t*)m_block;
-                        for(int i = 0;i<samples_read;++i) {
+                        for(size_t i = 0;i<samples_read;++i) {
                             *p=int16_t(*p*m_volume);
                             ++p;
   
